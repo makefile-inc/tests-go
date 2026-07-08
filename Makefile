@@ -310,6 +310,22 @@ makefile-go/test/ok/run-tests: go/lint
 		fi; \
 	done
 
+makefile-go/test/ok/gitignore: go/check/gitignore
+
+_revert/gitignore:
+	@git restore .gitignore
+
+_test/fail/gitignore:
+	@${INCLUDE_ECHO} \
+	sed -i 's/build\///' .gitignore; \
+	sed -i 's/tmp-go-tests\///' .gitignore; \
+	if $(MAKE) go/check/gitignore; then \
+		exit_with_err "go/check/gitignore should fail after changes"; \
+	fi
+
+makefile-go/test/fail/gitignore:
+	@$(call RUN_WITH_CLEANUP,_test/fail/gitignore,_revert/gitignore)
+
 makefile-go/test/fail/run-tests: export DO_FAIL_TEST = true
 makefile-go/test/fail/run-tests: export GO_TEST_FORCE_RESTART = true
 makefile-go/test/fail/run-tests:
