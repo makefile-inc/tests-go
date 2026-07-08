@@ -259,7 +259,7 @@ build/all-platforms: go/build/all
 		fi; \
 	done
 
-makefile-go/test/build: clean/build 
+makefile-go/test/ok/build: clean/build 
 	@$(MAKE) build
 	@$(MAKE) build/tags
 	@$(MAKE) build/tags/one
@@ -270,3 +270,81 @@ makefile-go/test/build: clean/build
 	@$(MAKE) build/dyn-tag-vars
 	@$(MAKE) build/example
 	@$(MAKE) build/all-platforms
+
+makefile-go/test/ok/run-tests: go/lint
+	@${INCLUDE_ECHO} \
+	for_check=(\
+		" Run tests in $(CURDIR) " \
+		" Run tests in $(CURDIR)/example " \
+		"Tests in '$(CURDIR)' passed in" \
+		"Tests in '$(CURDIR)/example' passed in" \
+		"All tests passed in" \
+	); \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for test run"; \
+	fi; \
+	$(MAKE) go/test 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" != "0" ]; then \
+		exit_with_err "go/test failed"; \
+	fi; \
+	sed -i $$'s/\033[[][^A-Za-z]*[A-Za-z]//g' "$$test_file"; \
+	for pat in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat' not found for go/test"; \
+		fi; \
+	done; \
+	race_file=""; \
+	if ! race_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for race run"; \
+	fi; \
+	$(MAKE) go/test/race 2>&1 | tee "$$race_file"; \
+	if [ "$${PIPESTATUS[0]}" != "0" ]; then \
+		exit_with_err "go/test/race failed"; \
+	fi; \
+	sed -i $$'s/\033[[][^A-Za-z]*[A-Za-z]//g' "$$race_file"; \
+	for_check+=("Run race tests..."); \
+	for pat_r in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat_r" "$$race_file"; then \
+			exit_with_err "Pattern '$$pat_r' not found for go/test/race"; \
+		fi; \
+	done
+
+makefile-go/test/fail/run-tests: export DO_FAIL_TEST = true
+makefile-go/test/fail/run-tests: export GO_TEST_FORCE_RESTART = true
+makefile-go/test/fail/run-tests:
+	@${INCLUDE_ECHO} \
+	for_check=(\
+		"$(CURDIR) tests failed!" \
+		"$(CURDIR)/example tests failed!" \
+		"In \"$(CURDIR)\" tests unsuccessful in" \
+		"In \"$(CURDIR)/example\" tests unsuccessful in" \
+		" Unsuccessful test TestFailFirst/Fail_test_first " \
+		" Unsuccessful test TestFailExample/Fail_test_example " \
+		"Tests FAILED in" \
+	); \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for test run"; \
+	fi; \
+	$(MAKE) go/test 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" == "0" ]; then \
+		exit_with_err "go/test passed"; \
+	fi; \
+	sed -i $$'s/\033[[][^A-Za-z]*[A-Za-z]//g' "$$test_file"; \
+	for pat in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat' not found for go/test"; \
+		fi; \
+	done; \
+	tail_file=""; \
+	if ! tail_file="$$(tail -n 10 "$$test_file")"; then \
+		exit_with_err "Cannot get tail for go/test"; \
+	fi; \
+	tail_pat="Unsuccessful tests:\nTestFailFirst\nTestFailSecond\nTestFailExample\nTestFailFirst\\/Fail_test_first\nTestFailSecond\\/Fail_test_first\nTestFailExample\\/Fail_test_example"; \
+	if ! grep -Pzq "$$tail_pat" "$$test_file"; then \
+		echo_err "Tail pattern not found"; \
+		echo_err "Got tail:"; \
+		echo_err "$$tail_file"; \
+		exit 5; \
+	fi
