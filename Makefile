@@ -326,6 +326,38 @@ _test/fail/gitignore:
 makefile-go/test/fail/gitignore:
 	@$(call RUN_WITH_CLEANUP,_test/fail/gitignore,_revert/gitignore)
 
+_revert/lint:
+	@git restore dynamic_no.go
+	@git restore example/main.go
+
+_test/fail/lint:
+	@${INCLUDE_ECHO} \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for test fail lint"; \
+	fi; \
+	echo $$'\n\n\n\n' >> dynamic_no.go; \
+	echo $$'\n\n\n\n' >> example/main.go; \
+	$(MAKE) go/lint 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" == "0" ]; then \
+		exit_with_err "go/lint passed"; \
+	fi; \
+	for_check=(\
+		"Lint in $(CURDIR) failed!" \
+		"Lint in $(CURDIR)/example failed!" \
+		"Code not linted in:" \
+		"  $(CURDIR)" \
+		"  $(CURDIR)/example" \
+	); \
+	for pat in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat' not found for go/lint"; \
+		fi; \
+	done
+
+makefile-go/test/fail/lint:
+	@$(call RUN_WITH_CLEANUP,_test/fail/lint,_revert/lint)
+
 makefile-go/test/fail/run-tests: export DO_FAIL_TEST = true
 makefile-go/test/fail/run-tests: export GO_TEST_FORCE_RESTART = true
 makefile-go/test/fail/run-tests:
