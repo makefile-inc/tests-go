@@ -69,9 +69,6 @@ build: export PROJECT_NAME = main
 build: go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build)
 
-build/all: export PROJECT_NAME = main-all
-build/all: go/build/all
-
 define expected_out_build_tags
 Build with 'custom tags'
 
@@ -240,6 +237,28 @@ build/example: export GO_TARGET_MODULE = $(CURDIR)/example
 build/example: go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_example)
 
+build/all-platforms: export PROJECT_NAME = main-all
+build/all-platforms: go/build/all
+	@${INCLUDE_ECHO} \
+	declare -A arches; \
+	arches["$(OS_LINUX)-$(ARCH_AMD)"]="ELF 64-bit LSB executable, x86-64"; \
+	arches["$(OS_LINUX)-$(ARCH_ARM)"]="ELF 64-bit LSB executable, ARM aarch64"; \
+	arches["$(OS_MACOS)-$(ARCH_AMD)"]="Mach-O 64-bit x86_64"; \
+	arches["$(OS_MACOS)-$(ARCH_ARM)"]="Mach-O 64-bit arm64"; \
+	for arch in "$${!arches[@]}"; do \
+		full_path="$(BUILD_PATH)/$${PROJECT_NAME}-$$arch"; \
+		if [ ! -x "$$full_path" ]; then \
+			exit_with_err "$$full_path is not found or not executable for $$arch"; \
+		fi; \
+    	file_out=""; \
+		if ! file_out="$$(file "$$full_path")"; then \
+			exit_with_err "$$full_path cannot get file info for $$arch"; \
+		fi; \
+		if ! grep -q "$${arches[$$arch]}" <<<"$$file_out"; then \
+			exit_with_err "Incorrect arch for $${arch}: $$file_out"; \
+		fi; \
+	done
+
 makefile-go/test/build: clean/build 
 	@$(MAKE) build
 	@$(MAKE) build/tags
@@ -250,3 +269,4 @@ makefile-go/test/build: clean/build
 	@$(MAKE) build/dynamic
 	@$(MAKE) build/dyn-tag-vars
 	@$(MAKE) build/example
+	@$(MAKE) build/all-platforms
