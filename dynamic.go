@@ -12,5 +12,5 @@ func getUser() string {
 	if err != nil {
 		return fmt.Sprintf("ERROR: %s", err.Error())
 	}
-	return u.Name
+	return u.Username
 }
