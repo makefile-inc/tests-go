@@ -30,3 +30,10 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# makefile.inc/go
+
+bin/
+build/
+tmp-go-tests/
+*.tst.res
