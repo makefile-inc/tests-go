@@ -311,9 +311,12 @@ makefile-go/test/ok/run-tests: go/lint
 	done
 
 makefile-go/test/ok/gitignore: go/check/gitignore
+makefile-go/test/ok/no-tidy: go/check/no-tidy
+
+makefile-go/test/ok/all: makefile-go/test/ok/build makefile-go/test/ok/run-tests makefile-go/test/ok/no-tidy makefile-go/test/ok/gitignore
 
 _revert/gitignore:
-	@git restore .gitignore
+	@git restore --staged --worktree .gitignore
 
 _test/fail/gitignore:
 	@${INCLUDE_ECHO} \
@@ -327,8 +330,8 @@ makefile-go/test/fail/gitignore:
 	@$(call RUN_WITH_CLEANUP,_test/fail/gitignore,_revert/gitignore)
 
 _revert/lint:
-	@git restore dynamic_no.go
-	@git restore example/main.go
+	@git restore --staged --worktree dynamic_no.go
+	@git restore --staged --worktree example/main.go
 
 _test/fail/lint:
 	@${INCLUDE_ECHO} \
@@ -357,6 +360,29 @@ _test/fail/lint:
 
 makefile-go/test/fail/lint:
 	@$(call RUN_WITH_CLEANUP,_test/fail/lint,_revert/lint)
+
+_revert/no-tidy:
+	@git restore --staged --worktree example/go.sum
+
+_test/fail/no-tidy:
+	@${INCLUDE_ECHO} \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for test fail lint"; \
+	fi; \
+	echo $$'github.com/dlclark/regexp2 v1.11.4 h1:rPYF9/LECdNymJufQKmri9gV604RvvABwgOA8un7yAo=\ngithub.com/dlclark/regexp2 v1.11.4/go.mod h1:DHkYz0B9wPfa6wondMfaivmHpzrQ3v9q8cnmRbL6yW8=' >> example/go.sum; \
+	git add example/go.sum; \
+	$(MAKE) go/check/no-tidy 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" == "0" ]; then \
+		exit_with_err "go/check/no-tidy passed"; \
+	fi; \
+	pat="go mod tidy produce diff. Please run 'make go/tidy' and commit"; \
+	if ! grep -q "$$pat" "$$test_file"; then \
+		exit_with_err "go/check/no-tidy not contains pattern '$$pat'"; \
+	fi
+
+makefile-go/test/fail/no-tidy:
+	@$(call RUN_WITH_CLEANUP,_test/fail/no-tidy,_revert/no-tidy)
 
 makefile-go/test/fail/run-tests: export DO_FAIL_TEST = true
 makefile-go/test/fail/run-tests: export GO_TEST_FORCE_RESTART = true
