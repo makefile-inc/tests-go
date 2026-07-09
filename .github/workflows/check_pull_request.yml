@@ -26,7 +26,7 @@ jobs:
         with:
           go-version: '1.26.x'
       - name: Run tests
-        run: makefile-go/test/ok/all
+        run: make makefile-go/test/ok/all
 
   fail_gitignore:
     name: "Run fail go/check/gitignore test"
