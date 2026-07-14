@@ -1,6 +1,6 @@
 name: Check pull request
 on:
-  pull_request_target:
+  pull_request:
     types:
       - opened
       - synchronize
@@ -74,3 +74,26 @@ jobs:
       - *setup_go
       - name: Run test
         run: make makefile-go/test/fail/run-tests
+
+  action_tests_ok:
+    name: "Test action "
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [ok_tests]
+
+    steps:
+      - *checkout_step
+      - name: Setup
+        uses: name212/action-dynamic-uses@v2
+        with:
+          uses: './makefile-go/.github/actions/test'
+          with: |
+            go_version: "1.26.x"
+            checkout: ""
+            run_race_tests: "with_tests"
+            parallel_tests: "false"
+            test_tags: "test_tag_first,test_tag_second"
+            envs: |
+              # Pass event with comment
+              BLAH_ENV=passed
+
