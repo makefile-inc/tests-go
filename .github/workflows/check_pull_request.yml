@@ -82,7 +82,6 @@ jobs:
     name: "Test action test"
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [ok_tests]
 
     steps:
       - *checkout_step
