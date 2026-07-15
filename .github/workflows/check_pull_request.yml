@@ -86,7 +86,7 @@ jobs:
       - name: Setup
         uses: name212/action-dynamic-uses@v2
         with:
-          uses: './makefile-go/.github/actions/test'
+          uses: 'dir:./makefile-go/.github/actions/test'
           with: |
             go_version: "1.26.x"
             checkout: ""
