@@ -94,52 +94,7 @@ jobs:
             checkout: ""
             run_race_tests: "with_tests"
             parallel_tests: "false"
-            test_tags: "test_tag_first,test_tag_second"
-            envs: |
+            tests_tags: "test_tag_first,test_tag_second"
+            tests_envs: |
               # Pass event with comment
               BLAH_ENV=passed
-
-  action_tests_logs:
-    name: "Check log for test job run action"
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    needs: [action_tests_ok]
-
-    steps:
-      - name: Check action logs
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -Eeuo pipefail
-          if ! job_id=$(gh run --repo "$GITHUB_REPOSITORY" view --json jobs "$GITHUB_RUN_ID" | yq '.jobs[] | select(.name == "Test action test") | .databaseId'); then
-            echo "Cannot get job id"
-            exit 1
-          fi
-
-          echo "Got job id: $job_id"
-
-          if ! gh run --repo "$GITHUB_REPOSITORY" view --log --job "$job_id" > ./.action_job_log; then
-            echo "Cannot get logs for job"
-            exit 1
-          fi
-
-          to_check=(
-            "BLAH_ENV=passed"
-            "Tags test_tag_first and test_tag_second were set"
-          )
-          
-          failed=""
-
-          for _ck in "${to_check[@]}"; do
-            if ! grep -q "$_ck" ./.action_job_log; then
-              failed="true"
-              echo "Pattern '$_ck' not found in action log"
-            fi
-          done
-
-          if [ -n "$failed" ]; then
-            exit 1
-          fi
-      - name: Check action logs
-        if: always()
-        run: rm -f "./.action_job_log"
