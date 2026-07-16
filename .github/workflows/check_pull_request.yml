@@ -99,7 +99,7 @@ jobs:
       #         # Pass event with comment
       #         BLAH_ENV=passed
     - name: Run tests
-      uses: makefile-inc/go/.github/actions/test@f20da195e735eda68d4175fb0f611308aeba200a
+      uses: makefile-inc/go/.github/actions/test@c1dc384e6fa2eb1e15a418d9c148d99fc8c05bbd
       with:
         go_version: "1.26.x"
         checkout: ${{ github.event.pull_request.head.sha }}
