@@ -1,0 +1,20 @@
+name: Check pull request logs
+
+on:
+  workflow_run:
+    workflows: [Check pull request]
+    types:
+      - completed
+
+jobs:
+    action_tests_logs:
+      name: "Check log for test job run action"
+      runs-on: ubuntu-latest
+      timeout-minutes: 5
+      steps:
+      - name: Check action logs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          commit_sha: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          echo "Sha: $commit_sha"
