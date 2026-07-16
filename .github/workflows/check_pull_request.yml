@@ -100,7 +100,7 @@ jobs:
               BLAH_ENV=passed
 
   action_tests_logs:
-    name: "Test action test"
+    name: "Check log for test job run action"
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: [action_tests_ok]
