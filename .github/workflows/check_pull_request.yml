@@ -107,3 +107,23 @@ jobs:
     #     tests_envs: |
     #       # Pass event with comment
     #       BLAH_ENV=passed
+
+  workflow_tests_ok:
+    name: "Test action test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - *checkout_step
+    - name: Run action
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/workflows/test.yml'
+        with: |
+          run_race_tests: "with_tests"
+          parallel_tests: "false"
+          tests_tags: "test_tag_first,test_tag_second"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
+
