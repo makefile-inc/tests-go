@@ -84,28 +84,26 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      # - *checkout_step
-      # - name: Run action
-      #   uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
-      #   with:
-      #     uses: 'dir:makefile-go/.github/actions/test'
-      #     with: |
-      #       go_version: "1.26.x"
-      #       checkout: ""
-      #       run_race_tests: "with_tests"
-      #       parallel_tests: "false"
-      #       tests_tags: "test_tag_first,test_tag_second"
-      #       tests_envs: |
-      #         # Pass event with comment
-      #         BLAH_ENV=passed
-    - name: Run tests
-      uses: makefile-inc/go/.github/actions/test@c1dc384e6fa2eb1e15a418d9c148d99fc8c05bbd
+    - *checkout_step
+    - name: Run action
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
       with:
-        go_version: "1.26.x"
-        checkout: ${{ github.event.pull_request.head.sha }}
-        run_race_tests: "with_tests"
-        parallel_tests: "false"
-        tests_tags: "test_tag_first,test_tag_second"
-        tests_envs: |
-          # Pass event with comment
-          BLAH_ENV=passed
+        uses: 'dir:makefile-go/.github/actions/test'
+        with: |
+          run_race_tests: "with_tests"
+          parallel_tests: "false"
+          tests_tags: "test_tag_first,test_tag_second"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
+    # - name: Run tests
+    #   uses: makefile-inc/go/.github/actions/test@c1dc384e6fa2eb1e15a418d9c148d99fc8c05bbd
+    #   with:
+    #     go_version: "1.26.x"
+    #     checkout: ${{ github.event.pull_request.head.sha }}
+    #     run_race_tests: "with_tests"
+    #     parallel_tests: "false"
+    #     tests_tags: "test_tag_first,test_tag_second"
+    #     tests_envs: |
+    #       # Pass event with comment
+    #       BLAH_ENV=passed
