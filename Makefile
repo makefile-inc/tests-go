@@ -280,6 +280,9 @@ makefile-go/test/ok/run-tests: go/lint
 		"Tests in '$(CURDIR)/example' passed in" \
 		"All tests passed in" \
 	); \
+	for_check_exclude=(\
+		"Tags test_tag_first and test_tag_second were set" \
+	); \
 	test_file=""; \
 	if ! test_file="$$(mktemp)"; then \
 		exit_with_err "Cannot create tmp file for test run"; \
@@ -292,6 +295,11 @@ makefile-go/test/ok/run-tests: go/lint
 	for pat in "$${for_check[@]}"; do \
 		if ! grep -q "$$pat" "$$test_file"; then \
 			exit_with_err "Pattern '$$pat' not found for go/test"; \
+		fi; \
+	done; \
+	for pat_e in "$${for_check_exclude[@]}"; do \
+		if grep -q "$$pat_e" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat_e' found for go/test but should not"; \
 		fi; \
 	done; \
 	race_file=""; \
@@ -307,6 +315,26 @@ makefile-go/test/ok/run-tests: go/lint
 	for pat_r in "$${for_check[@]}"; do \
 		if ! grep -q "$$pat_r" "$$race_file"; then \
 			exit_with_err "Pattern '$$pat_r' not found for go/test/race"; \
+		fi; \
+	done
+
+makefile-go/test/ok/run-tests/with-tags: go/lint
+	@${INCLUDE_ECHO} \
+	for_check=(\
+		"Tags test_tag_first and test_tag_second were set" \
+	); \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for test run"; \
+	fi; \
+	$(MAKE) go/test GO_TEST_TAGS="test_tag_first,test_tag_second" 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" != "0" ]; then \
+		exit_with_err "go/test failed"; \
+	fi; \
+	sed -i $$'s/\033[[][^A-Za-z]*[A-Za-z]//g' "$$test_file"; \
+	for pat in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat' not found for go/test with tags"; \
 		fi; \
 	done
 
@@ -422,3 +450,5 @@ makefile-go/test/fail/run-tests:
 		echo_err "$$tail_file"; \
 		exit 5; \
 	fi
+
+makefile-go/test/fail/all: makefile-go/test/fail/gitignore makefile-go/test/fail/lint makefile-go/test/fail/no-tidy

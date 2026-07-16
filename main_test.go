@@ -24,3 +24,9 @@ func TestFailFirst(t *testing.T) {
 		t.FailNow()
 	})
 }
+
+func TestEnvPassed(t *testing.T) {
+	t.Run("BLAH_ENV", func(t *testing.T) {
+		t.Logf("BLAH_ENV=%s", os.Getenv("BLAH_ENV"))
+	})
+}
