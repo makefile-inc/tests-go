@@ -273,6 +273,9 @@ makefile-go/test/ok/build: clean/build
 
 makefile-go/release/example: go/build/linux/all
 
+makefile-go/release/artifacts:
+	@cp "$(CURDIR)/README.md" "$$RELEASE_GO_ARTIFACTS_DIR"
+
 makefile-go/release/main: export GO_BUILD_TAGS = first,second
 makefile-go/release/main: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_ALL}
 makefile-go/release/main: go/build/linux/all

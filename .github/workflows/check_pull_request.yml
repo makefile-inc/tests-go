@@ -175,6 +175,9 @@ jobs:
           project: "example"
           build_target: "makefile-go/release/example"
           tests_parallelism: "false"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
           release_name: ${{ steps.release_name.outputs.tag }}
           release_notes: |
             Test release action on `${{ github.event.pull_request.head.sha }}`
@@ -189,9 +192,47 @@ jobs:
           target_ref: ${{ github.event.pull_request.head.sha }}
           project: "main"
           build_target: "makefile-go/release/main"
+          tests_tags: "test_tag_first,test_tag_second"
           release_name: "${{ steps.release_name.outputs.tag }}"
           prepare_artifacts: |
             cp "README.md" "$RELEASE_GO_ARTIFACTS_DIR"
             cp "LICENSE" "$RELEASE_GO_ARTIFACTS_DIR"
           release_notes: |
             Test release action on `${{ github.event.pull_request.head.sha }}`
+
+
+  action_release_another:
+    name: "Test action with files and targets"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+    - *checkout_step
+    - name: Release name
+      id: release_name
+      run: |
+        echo "tag=v${{ github.event.pull_request.head.sha }}-a" >> "$GITHUB_OUTPUT"
+    - name: Release notes file
+      id: release_notes
+      env:
+        sha: ${{ github.event.pull_request.head.sha }}
+      run: |
+        notes_file=".release_notes.md"
+        echo "Test release action with files and targets on '$sha'" > "$notes_file"
+        echo "path=${notes_file}" >> "$GITHUB_OUTPUT"
+    - name: Release example
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/release'
+        with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target_ref: ${{ github.event.pull_request.head.sha }}
+          project: "example-a"
+          build_target: "makefile-go/release/example"
+          release_name: ${{ steps.release_name.outputs.tag }}
+          run_race_tests: 'true'
+          prepare_artifacts: "make::makefile-go/release/artifacts"
+          release_notes: "md_file::${{ steps.release_notes.outputs.path }}"
+            
