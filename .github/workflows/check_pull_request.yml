@@ -170,6 +170,7 @@ jobs:
       with:
         uses: 'dir:makefile-go/.github/actions/release'
         with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
           target_ref: ${{ github.event.pull_request.head.sha }}
           project: "example"
           build_target: "makefile-go/release/example"
@@ -183,6 +184,7 @@ jobs:
       with:
         uses: 'dir:makefile-go/.github/actions/release'
         with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
           target_ref: ${{ github.event.pull_request.head.sha }}
           project: "main"
           build_target: "makefile-go/release/main"
