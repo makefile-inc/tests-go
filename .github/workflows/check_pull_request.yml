@@ -177,7 +177,7 @@ jobs:
           tests_parallelism: "false"
           release_name: ${{ steps.release_name.outputs.tag }}
           release_notes: |
-            Test release action on `{{ github.event.pull_request.head.sha }}`
+            Test release action on `${{ github.event.pull_request.head.sha }}`
 
     - name: Release main
       uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
@@ -185,6 +185,7 @@ jobs:
         uses: 'dir:makefile-go/.github/actions/release'
         with: |
           token: ${{ secrets.GITHUB_TOKEN }}
+          go_version: ""
           target_ref: ${{ github.event.pull_request.head.sha }}
           project: "main"
           build_target: "makefile-go/release/main"
@@ -193,4 +194,4 @@ jobs:
             cp "README.md" "$RELEASE_GO_ARTIFACTS_DIR"
             cp "LICENSE" "$RELEASE_GO_ARTIFACTS_DIR"
           release_notes: |
-            Test release action on `{{ github.event.pull_request.head.sha }}`
+            Test release action on `${{ github.event.pull_request.head.sha }}`
