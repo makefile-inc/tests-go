@@ -271,6 +271,12 @@ makefile-go/test/ok/build: clean/build
 	@$(MAKE) build/example
 	@$(MAKE) build/all-platforms
 
+makefile-go/release/example: go/build/linux/all
+
+makefile-go/release/main: export GO_BUILD_TAGS = first,second
+makefile-go/release/main: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_ALL}
+makefile-go/release/main: go/build/linux/all
+
 makefile-go/test/ok/run-tests: go/lint
 	@${INCLUDE_ECHO} \
 	for_check=(\
