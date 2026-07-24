@@ -187,7 +187,7 @@ jobs:
         with: |
           token: ${{ secrets.GITHUB_TOKEN }}
           go_version: ""
-          target_ref: ${{ github.event.pull_request.head.sha }}
+          target_ref: ""
           project: "main"
           build_target: "makefile-go/release/main"
           tests_envs: |
