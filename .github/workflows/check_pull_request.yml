@@ -79,7 +79,7 @@ jobs:
         run: make makefile-go/test/fail/run-tests
 
   action_tests_ok:
-    name: "Test action test"
+    name: "Test action test ok"
     runs-on: ubuntu-latest
     timeout-minutes: 5
 
@@ -91,19 +91,149 @@ jobs:
         uses: 'dir:makefile-go/.github/actions/test'
         with: |
           run_race_tests: "with_tests"
-          parallel_tests: "false"
+          tests_parallelism: "false"
           tests_tags: "test_tag_first,test_tag_second"
           tests_envs: |
             # Pass event with comment
             BLAH_ENV=passed
+
     # - name: Run tests
     #   uses: makefile-inc/go/.github/actions/test@c1dc384e6fa2eb1e15a418d9c148d99fc8c05bbd
     #   with:
     #     go_version: "1.26.x"
     #     checkout: ${{ github.event.pull_request.head.sha }}
     #     run_race_tests: "with_tests"
-    #     parallel_tests: "false"
+    #     tests_parallelism: "false"
     #     tests_tags: "test_tag_first,test_tag_second"
     #     tests_envs: |
     #       # Pass event with comment
     #       BLAH_ENV=passed
+
+  action_tests_fail:
+    name: "Test action test fail parallel"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - *checkout_step
+    - name: Run action
+      continue-on-error: true
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/test'
+        with: |
+          parallel: "all"
+          run_race_tests: "with_tests"
+          tests_parallelism: "false"
+          tests_tags: "test_tag_first,test_tag_second"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
+            # Fail tests
+            DO_FAIL_TEST=true
+
+  action_tests_seq:
+    name: "Test action test run sequentially"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+    - *checkout_step
+    - name: Run action
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/test'
+        with: |
+          parallel: ""
+          run_race_tests: "with_tests"
+          tests_parallelism: "false"
+          tests_tags: "test_tag_first,test_tag_second"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
+
+  action_release_test:
+    name: "Test action release"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+    - *checkout_step
+    - name: Release name
+      id: release_name
+      run: |
+        echo "tag=v${{ github.event.pull_request.head.sha }}" >> "$GITHUB_OUTPUT"
+    - name: Release example
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/release'
+        with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target_ref: ${{ github.event.pull_request.head.sha }}
+          project: "example"
+          build_target: "makefile-go/release/example"
+          tests_parallelism: "false"
+          run_tests: "race"
+          release_name: ${{ steps.release_name.outputs.tag }}
+          release_notes: |
+            Test release action on `${{ github.event.pull_request.head.sha }}`
+
+    - name: Release main
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/release'
+        with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
+          go_version: ""
+          target_ref: ${{ github.event.pull_request.head.sha }}
+          project: "main"
+          build_target: "makefile-go/release/main"
+          tests_envs: |
+            # Pass event with comment
+            BLAH_ENV=passed
+          tests_tags: "test_tag_first,test_tag_second"
+          release_name: "${{ steps.release_name.outputs.tag }}"
+          prepare_artifacts: |
+            cp "README.md" "$RELEASE_GO_ARTIFACTS_DIR"
+            cp "LICENSE" "$RELEASE_GO_ARTIFACTS_DIR"
+          release_notes: |
+            Test release action on `${{ github.event.pull_request.head.sha }}`
+
+
+  action_release_another:
+    name: "Test action release with files and targets no tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+    - *checkout_step
+    - name: Release name
+      id: release_name
+      run: |
+        echo "tag=v${{ github.event.pull_request.head.sha }}-a" >> "$GITHUB_OUTPUT"
+    - name: Release notes file
+      id: release_notes
+      env:
+        sha: ${{ github.event.pull_request.head.sha }}
+      run: |
+        notes_file=".release_notes.md"
+        echo "Test release action with files and targets on '$sha'" > "$notes_file"
+        echo "path=${notes_file}" >> "$GITHUB_OUTPUT"
+    - name: Release example
+      uses: name212/action-dynamic-uses@dc77a3349fecbd50c85ee651868ac03444af877a # v3
+      with:
+        uses: 'dir:makefile-go/.github/actions/release'
+        with: |
+          token: ${{ secrets.GITHUB_TOKEN }}
+          target_ref: ${{ github.event.pull_request.head.sha }}
+          project: "example-a"
+          build_target: "makefile-go/release/example"
+          release_name: ${{ steps.release_name.outputs.tag }}
+          run_tests: "no"
+          prepare_artifacts: "make::makefile-go/release/artifacts"
+          release_notes: "md_file::${{ steps.release_notes.outputs.path }}"
+            
