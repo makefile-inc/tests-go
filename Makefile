@@ -271,6 +271,7 @@ makefile-go/test/ok/build: clean/build
 	@$(MAKE) build/example
 	@$(MAKE) build/all-platforms
 
+makefile-go/release/example: export GO_TARGET_MODULE = $(CURDIR)/example
 makefile-go/release/example: go/build/linux/all
 
 makefile-go/release/artifacts:
