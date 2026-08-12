@@ -461,4 +461,35 @@ makefile-go/test/fail/run-tests:
 		exit 5; \
 	fi
 
-makefile-go/test/fail/all: makefile-go/test/fail/gitignore makefile-go/test/fail/lint makefile-go/test/fail/no-tidy
+_revert/fail-license:
+	@git restore --staged --worktree example/main_test.go tags_custom.go
+
+_test/fail/license:
+	@${INCLUDE_ECHO} \
+	for_check=(\
+		"Error while check:" \
+		"  License comment not found in './example/main_test.go'" \
+		"  License comment not found in './tags_custom.go'" \
+	); \
+	for fl in example/main_test.go tags_custom.go; do \
+		sed -i "s|// Copyright 2026||g" "$$fl"; \
+		sed -i "s|// license that can be found in the LICENSE file\.||g" "$$fl"; \
+	done; \
+	test_file=""; \
+	if ! test_file="$$(mktemp)"; then \
+		exit_with_err "Cannot create tmp file for check license"; \
+	fi; \
+	$(MAKE) go/check/license 2>&1 | tee "$$test_file"; \
+	if [ "$${PIPESTATUS[0]}" == "0" ]; then \
+		exit_with_err "go/check/license passed"; \
+	fi; \
+	for pat in "$${for_check[@]}"; do \
+		if ! grep -q "$$pat" "$$test_file"; then \
+			exit_with_err "Pattern '$$pat' not found for go/test"; \
+		fi; \
+	done; \
+
+makefile-go/test/fail/license:
+	@$(call RUN_WITH_CLEANUP,_test/fail/license,_revert/fail-license)
+
+makefile-go/test/fail/all: makefile-go/test/fail/gitignore makefile-go/test/fail/lint makefile-go/test/fail/no-tidy makefile-go/test/fail/license
