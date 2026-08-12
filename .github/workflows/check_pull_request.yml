@@ -6,9 +6,6 @@ on:
       - synchronize
       - reopened
 
-env:
-  DEBUG_DYN_ACTION_ENABLED: 'true'
-
 jobs:
   ok_tests:
     name: "Run ok tests"
@@ -41,6 +38,17 @@ jobs:
       - *checkout_step
       - name: Run test
         run: make makefile-go/test/fail/gitignore
+
+  fail_license:
+    name: "Run fail go/check/license test"
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [ok_tests]
+
+    steps:
+      - *checkout_step
+      - name: Run test
+        run: make makefile-go/test/fail/license
 
   fail_lint:
     name: "Run fail go/lint test"
