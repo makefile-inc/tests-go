@@ -66,7 +66,7 @@ endef
 export expected_out_build
 
 build: export PROJECT_NAME = main
-build: go/build/current
+build: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build)
 
 define expected_out_build_tags
@@ -86,7 +86,7 @@ export expected_out_build_tags
 
 build/tags: export PROJECT_NAME = main-tags
 build/tags: export GO_BUILD_TAGS = first,second
-build/tags: go/build/current
+build/tags: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_tags)
 
 define expected_out_build_tags_one
@@ -106,7 +106,7 @@ export expected_out_build_tags_one
 
 build/tags/one: export PROJECT_NAME = main-tags-one
 build/tags/one: export GO_BUILD_TAGS = first
-build/tags/one: go/build/current
+build/tags/one: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_tags_one)
 
 define BUILD_VARIABLES_ALL
@@ -132,7 +132,7 @@ export expected_out_build_vars
 
 build/vars: export PROJECT_NAME = main-vars
 build/vars: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_ALL}
-build/vars: go/build/current
+build/vars: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_vars)
 
 define BUILD_VARIABLES_FIRST
@@ -156,7 +156,7 @@ export expected_out_build_vars_first
 
 build/vars/first: export PROJECT_NAME = main-vars-first
 build/vars/first: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_FIRST}
-build/vars/first: go/build/current
+build/vars/first: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_vars_first)
 
 define BUILD_VARIABLES_SECOND
@@ -180,7 +180,7 @@ export expected_out_build_vars_second
 
 build/vars/second: export PROJECT_NAME = main-vars-second
 build/vars/second: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_SECOND}
-build/vars/second: go/build/current
+build/vars/second: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_vars_second)
 
 define expected_out_build_dynamic
@@ -201,7 +201,7 @@ export expected_out_build_dynamic
 build/dynamic: export PROJECT_NAME = main-dynamic
 build/dynamic: export GO_BUILD_TAGS = dynamic
 build/dynamic: export GO_BUILD_DYNAMIC = true
-build/dynamic: go/build/current
+build/dynamic: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(DYNAMIC_ARG),expected_out_build_dynamic)
 
 define expected_out_build_dyn_tag_vars
@@ -223,7 +223,7 @@ build/dyn-tag-vars: export PROJECT_NAME = main-dtv
 build/dyn-tag-vars: export GO_BUILD_TAGS = dynamic,first,second
 build/dyn-tag-vars: export GO_BUILD_VARIABLES = ${BUILD_VARIABLES_ALL}
 build/dyn-tag-vars: export GO_BUILD_DYNAMIC = true
-build/dyn-tag-vars: go/build/current
+build/dyn-tag-vars: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(DYNAMIC_ARG),expected_out_build_dyn_tag_vars)
 
 define expected_out_build_example
@@ -234,11 +234,11 @@ export expected_out_build_example
 
 build/example: export PROJECT_NAME = example
 build/example: export GO_TARGET_MODULE = $(CURDIR)/example
-build/example: go/build/current
+build/example: check/installed/go go/build/current
 	@$(call CHECK_BUILD_BIN,$(NOT_DYNAMIC_ARG),expected_out_build_example)
 
 build/all-platforms: export PROJECT_NAME = main-all
-build/all-platforms: go/build/all
+build/all-platforms: check/installed/go go/build/all
 	@${INCLUDE_ECHO} \
 	declare -A arches; \
 	arches["$(OS_LINUX)-$(ARCH_AMD)"]="ELF 64-bit LSB executable, x86-64"; \

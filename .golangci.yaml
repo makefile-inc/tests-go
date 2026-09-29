@@ -29,7 +29,7 @@ linters:
   settings:
     testpackage:
       allow-packages:
-      - gotee
+      - tests-go
     depguard:
       rules:
         main:
@@ -125,7 +125,7 @@ formatters:
         - localmodule
     goimports:
       local-prefixes:
-        - github.com/name212/gotee
+        - github.com/makefile-inc/tests-go
   exclusions:
     generated: lax
     paths:
